@@ -1,6 +1,6 @@
 # Домашнее задание к занятию «Хранение в K8s»
 
----
+------
 
 ## Задание 1. Volume: обмен данными между контейнерами в поде
 ### Задача
@@ -133,4 +133,75 @@ POD=$(kubectl get pods -l app=data-exchange -o jsonpath="{.items[0].metadata.nam
 
 ![scr4](https://github.com/vladrabbit/K8S-4/blob/main/SCR/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-11-23%20%D0%B2%2018.52.48.png)
 
+
+## Решение 2. PV, PVC
+
+
+### Шаги выполнения
+1. Создать Deployment приложения, состоящего из контейнеров busybox и multitool, использующего созданный ранее PVC
+2. Создать PV и PVC для подключения папки на локальной ноде, которая будет использована в поде.
+3. Продемонстрировать, что контейнер multitool может читать данные из файла в смонтированной директории, в который busybox записывает данные каждые 5 секунд. 
+4. Удалить Deployment и PVC. Продемонстрировать, что после этого произошло с PV. Пояснить, почему. (Используйте команду `kubectl describe pv`).
+5. Продемонстрировать, что файл сохранился на локальном диске ноды. Удалить PV.  Продемонстрировать, что произошло с файлом после удаления PV. Пояснить, почему.
+
+
+### Что сдать на проверку
+- Манифесты:
+  - `pv-pvc.yaml`
+
+```yaml
+  apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-exchange-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-exchange-pvc
+  template:
+    metadata:
+      labels:
+        app: data-exchange-pvc
+    spec:
+      # Под запустится на ноде с меткой storage=local1
+      nodeSelector:
+        storage: local1
+      containers:
+      - name: busybox-writer
+        image: busybox:1.36.1
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /data
+            # каждую 5 секунд дописываем дату во /data/data.txt
+            while true; do date >> /data/data.txt; sleep 5; done
+        volumeMounts:
+        - name: shared-pvc
+          mountPath: /data
+      - name: multitool
+        image: praqma/network-multitool:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /data
+            touch /data/data.txt
+            tail -f /data/data.txt
+        volumeMounts:
+        - name: shared-pvc
+          mountPath: /data
+      volumes:
+      - name: shared-pvc
+        persistentVolumeClaim:
+          claimName: pvc-local
+
+
+  ```
+
+- Скриншоты:
+  - каждый шаг выполнения задания, начиная с шага 2.
+- Описания:
+  - объяснение наблюдаемого поведения ресурсов в двух последних шагах.
 ------
+
+
