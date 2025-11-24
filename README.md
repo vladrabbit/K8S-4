@@ -116,8 +116,21 @@ spec:
 
 ```
 
- - описание пода с контейнерами (`kubectl describe pods data-exchange`)
+- Получить имя пода 
 
- ![scr1]()
+```bash
+POD=$(kubectl get pods -l app=data-exchange -o jsonpath="{.items[0].metadata.name}"
+```
+![scr1](https://github.com/vladrabbit/K8S-4/blob/main/SCR/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-11-24%20%D0%B2%2015.27.19.png)
+
+- описание пода с контейнерами (`kubectl describe pods data-exchange`)
+
+![scr2](https://github.com/vladrabbit/K8S-4/blob/main/SCR/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-11-23%20%D0%B2%2018.51.18.png)
+
+![scr3](https://github.com/vladrabbit/K8S-4/blob/main/SCR/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-11-23%20%D0%B2%2018.51.39.png)
+
+- вывод команды чтения файла (`tail -f <имя общего файла>`)
+
+![scr4](https://github.com/vladrabbit/K8S-4/blob/main/SCR/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-11-23%20%D0%B2%2018.52.48.png)
 
 ------
