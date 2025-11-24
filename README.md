@@ -200,6 +200,47 @@ spec:
 
 - Скриншоты:
   - каждый шаг выполнения задания, начиная с шага 2.
+
+    - Создание/описание PV/PVC
+      ![scr1](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-1.1.png)
+
+    - Описание POD
+
+      ```bash
+      POD=$(kubectl get pods -l app=data-exchange-pvc -o jsonpath="{.items[0].metadata.name}")
+      ```
+
+      ![scr2](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-2.1.png)
+      ![scr3](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-2.2.png)
+
+    - Вывод чтения файла
+
+      ![scr4](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-3.png)
+
+    - Скриншот kubectl describe pv pv-local после удаления PVC
+
+      ![scr5](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-4.png)
+
+    - Объяснение поведения
+      
+      - В манифесте persistentVolumeReclaimPolicy: Retain. Это значит:
+
+        1. При удалении PVC Kubernetes не удаляет автоматически данные на хосте и не удаляет объект PV. Вместо этого PV перейдёт в состояние Released, но контент на диске останется нетронутым.
+
+        2. Поэтому kubectl describe pv pv-local покажет, что PV Released (или Available/Bound). 
+
+        3. Причина: Retain — политика сохранения данных, чтобы администратор мог вручную очистить или перенести данные перед удалением PV.
+
+    - Скриншот содержимого директории на ноде
+
+      ![scr6](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-5.png)
+
+    - Скриншот содержимого директории на ноде после удаления PV
+
+      ![scr7](https://github.com/vladrabbit/K8S-4/blob/main/SCR/2-5.1.png)
+
+
+
 - Описания:
   - объяснение наблюдаемого поведения ресурсов в двух последних шагах.
 ------
