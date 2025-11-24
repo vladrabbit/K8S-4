@@ -116,4 +116,8 @@ spec:
 
 ```
 
+ - описание пода с контейнерами (`kubectl describe pods data-exchange`)
+
+ ![scr1]()
+
 ------
