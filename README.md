@@ -256,14 +256,134 @@ spec:
 ### Шаги выполнения
 
 1. Создать Deployment приложения, состоящего из контейнеров busybox и multitool, использующего созданный ранее PVC.
-2. Создать SC и PVC для подключения папки на локальной ноде, которая будет использована в поде.
-3. Продемонстрировать, что контейнер multitool может читать данные из файла в смонтированной директории, в который busybox записывает данные каждые 5 секунд.
 
-### Что сдать на проверку
-- Манифесты:
-  - `sc.yaml`
-- Скриншоты:
-  - каждый шаг выполнения задания, начиная с шага 2
+```yaml
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-local
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+# Static PV which will be bound to PVC created with storageClassName: sc-local
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-sc-local
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: sc-local
+  hostPath:
+    path: /mnt/sc-pv
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: storage
+          operator: In
+          values:
+          - local1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sc
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: sc-local
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-exchange-sc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-exchange-sc
+  template:
+    metadata:
+      labels:
+        app: data-exchange-sc
+    spec:
+      nodeSelector:
+        storage: local1
+      containers:
+      - name: busybox-writer
+        image: busybox:1.36.1
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /data
+            # append current date every 5 seconds into /data/data.txt
+            while true; do date >> /data/data.txt; sleep 5; done
+        volumeMounts:
+        - name: sc-storage
+          mountPath: /data
+      - name: multitool
+        image: praqma/network-multitool:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            mkdir -p /data
+            touch /data/data.txt
+            tail -f /data/data.txt
+        volumeMounts:
+        - name: sc-storage
+          mountPath: /data
+      volumes:
+      - name: sc-storage
+        persistentVolumeClaim:
+          claimName: pvc-sc
+
+```
+2. Создать SC и PVC для подключения папки на локальной ноде, которая будет использована в поде.
+
+  - создание директории на ноде
+
+    ![scr1](https://github.com/vladrabbit/K8S-4/blob/main/SCR/11.png)
+
+  - назначение label на ноде описана в манифесте
+
+    ![scr2](https://github.com/vladrabbit/K8S-4/blob/main/SCR/12.png)
+
+  - проверка состояния 
+
+    ![scr3](https://github.com/vladrabbit/K8S-4/blob/main/SCR/21.png)
+
+  - проверка того, что происходит запись в файл на ноде после применения манифеста
+
+    ![scr4](https://github.com/vladrabbit/K8S-4/blob/main/SCR/22.png)
+
+
+
+3. Продемонстрировать, что контейнер multitool может читать данные из файла в смонтированной директории, в который busybox записывает данные каждые 5 секунд.
+  
+  - назначение переменной значения = имени пода
+
+    ![scr5](https://github.com/vladrabbit/K8S-4/blob/main/SCR/31.png)
+
+  - информация о поде
+
+    ![scr6](https://github.com/vladrabbit/K8S-4/blob/main/SCR/32.png)
+    ![scr7](https://github.com/vladrabbit/K8S-4/blob/main/SCR/33.png)
+
+  - проверка чтения из файла
+
+    ![scr8](https://github.com/vladrabbit/K8S-4/blob/main/SCR/34.png)
+
+
 
 ------
 
