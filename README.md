@@ -266,7 +266,6 @@ metadata:
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
 ---
-# Static PV which will be bound to PVC created with storageClassName: sc-local
 apiVersion: v1
 kind: PersistentVolume
 metadata:
